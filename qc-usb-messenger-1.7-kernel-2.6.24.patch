@@ -1,0 +1,25 @@
+Only in qc-usb-messenger-1.7: Module.symvers
+diff -r -u qc-usb-messenger-1.7-orig/qc-driver.c qc-usb-messenger-1.7/qc-driver.c
+--- qc-usb-messenger-1.7-orig/qc-driver.c	2007-09-02 21:51:16.000000000 +0300
++++ qc-usb-messenger-1.7/qc-driver.c	2008-01-30 19:57:50.000000000 +0200
+@@ -107,6 +107,10 @@
+ #endif
+ #endif
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
++#define LONG(x) ((x)/BITS_PER_LONG) 
++#endif
++
+ 
+ /* }}} */
+ /* {{{ [fold] Module parameters  */
+@@ -3481,7 +3485,9 @@
+ static struct video_device qc_v4l_template = {
+ 	name:		"QuickCam USB",
+ 	type:		VID_TYPE_CAPTURE, // | VID_TYPE_SUBCAPTURE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+ 	hardware:	VID_HARDWARE_QCAM_USB,
++#endif
+ 	minor:		-1,
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ 	release:	qc_v4l_release,
