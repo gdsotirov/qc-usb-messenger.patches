@@ -1,0 +1,239 @@
+diff -N -U 3 -r qc-usb-messenger-1.8-orig/qc-driver.c qc-usb-messenger-1.8/qc-driver.c
+--- qc-usb-messenger-1.8-orig/qc-driver.c	2008-05-26 14:29:16.000000000 +0300
++++ qc-usb-messenger-1.8/qc-driver.c	2010-01-10 12:26:34.000000000 +0200
+@@ -1124,7 +1124,7 @@
+ 		PRINTK(KERN_WARNING,"Could not register procfs file entry");
+ 		return -ENXIO;
+ 	}
+-	entry->owner = THIS_MODULE;
++	/*entry->owner = THIS_MODULE;*/
+ 	entry->data = qc;
+ 	entry->read_proc = qc_proc_read;
+ 	entry->write_proc = qc_proc_write;
+@@ -1137,7 +1137,7 @@
+ 		PRINTK(KERN_WARNING,"Could not register procfs file entry");
+ 		return -ENXIO;
+ 	}
+-	entry->owner = THIS_MODULE;
++	/*entry->owner = THIS_MODULE;*/
+ 	entry->data = qc;
+ 	entry->read_proc = qc_proc_button_read;
+ 	entry->write_proc = qc_proc_write;
+@@ -1179,13 +1179,13 @@
+ 		PRINTK(KERN_WARNING,"Could not register procfs dir entry");
+ 		return -ENXIO;
+ 	}
+-	qc_proc_video_entry->owner = THIS_MODULE;
++	/*qc_proc_video_entry->owner = THIS_MODULE;*/
+ 	qc_proc_quickcam_entry = create_proc_entry(qc_proc_quickcam_name, S_IFDIR, qc_proc_video_entry);
+ 	if (!qc_proc_quickcam_entry) {
+ 		PRINTK(KERN_WARNING,"Could not register procfs dir entry");
+ 		return -ENXIO;
+ 	}
+-	qc_proc_quickcam_entry->owner = THIS_MODULE;
++	/*qc_proc_quickcam_entry->owner = THIS_MODULE;*/
+ 	return 0;
+ }
+ /* }}} */
+@@ -2486,7 +2486,7 @@
+ 		}
+ 
+ 		if (qc->settings.adaptive && !qc->sensor_data.sensor->autoexposure && r>=0 && midvalue>=0) {
+-			int ex, gn;
++			int ex = 0, gn = 0;
+ 			qc_adapt(qc, midvalue, qc->vpic.brightness>>8, &ex, &gn);
+ 			qc->sensor_data.sensor->set_levels(qc, ex, gn, qc->vpic.hue, qc->vpic.colour);
+ 			if(qc->settings.shutteradapt)
+@@ -2622,7 +2622,11 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ 	struct video_device *dev = video_devdata(file);
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
+ 	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	struct qc_frame_data *fd = &qc->frame_data;
+ 	int mask;
+ 
+@@ -2665,7 +2669,9 @@
+ }
+ /* }}} */
+ /* {{{ [fold] qc_v4l_open(struct video_device *dev, int flags) */
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30)
++static int qc_v4l_open(struct file *file)
++#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ static int qc_v4l_open(struct inode *inode, struct file *file)
+ #else
+ static int qc_v4l_open(struct video_device *dev, int flags)
+@@ -2674,7 +2680,11 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ 	struct video_device *dev = video_devdata(file);
+ #endif
+-	struct quickcam *qc = dev->priv;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
++	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	int r;
+ 
+ 	if (qcdebug&QC_DEBUGLOGIC || qcdebug&QC_DEBUGUSER) PDEBUG("qc_v4l_open(qc=%p)", qc);
+@@ -2730,7 +2740,9 @@
+ }
+ /* }}} */
+ /* {{{ [fold] qc_v4l_close(struct video_device *dev) */
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30)
++static int qc_v4l_close(struct file *file)
++#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ static int qc_v4l_close(struct inode *inode, struct file *file)
+ #else
+ static void qc_v4l_close(struct video_device *dev)
+@@ -2739,7 +2751,11 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ 	struct video_device *dev = video_devdata(file);
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
+ 	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	if (qcdebug&QC_DEBUGLOGIC || qcdebug&QC_DEBUGUSER) PDEBUG("qc_v4l_close(dev=%p,qc=%p)",dev,qc);
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+@@ -2788,7 +2804,11 @@
+ 	struct video_device *dev = video_devdata(file);
+ 	int noblock = file->f_flags & O_NONBLOCK;
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
+ 	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	int frame_len;
+ 	unsigned char *frame;
+ 	long r = 0;
+@@ -2845,7 +2865,11 @@
+ 	const void *start = (void *)vma->vm_start;
+ 	unsigned long size  = vma->vm_end - vma->vm_start;
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
+ 	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	unsigned char *frame;
+ 	int ret = 0,  frame_size;
+ #if !HAVE_VMA && LINUX_VERSION_CODE<KERNEL_VERSION(2,6,0)
+@@ -2866,7 +2890,9 @@
+ }
+ /* }}} */
+ /* {{{ [fold] qc_v4l_ioctl(struct video_device *dev, unsigned int cmd, void *arg) */
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30)
++static long qc_v4l_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ static int qc_v4l_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
+ #else
+ static int qc_v4l_ioctl(struct video_device *dev, unsigned int cmd, void *argp)
+@@ -2877,7 +2903,11 @@
+ 	struct video_device *dev = video_devdata(file);
+ 	void *argp = (void *)arg;
+ #endif
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	struct quickcam *qc = (struct quickcam *)video_get_drvdata(dev);
++#else
+ 	struct quickcam *qc = (struct quickcam *)dev->priv;
++#endif
+ 	int i, retval = 0;
+ 
+ 	if (qcdebug&QC_DEBUGLOGIC || qcdebug&QC_DEBUGUSER) PDEBUG("qc_v4l_ioctl(dev=%p,cmd=%u,arg=%p,qc=%p)",dev,cmd,argp,qc);
+@@ -2895,7 +2925,7 @@
+ 			if (qcdebug&QC_DEBUGUSER) PDEBUG("VIDIOCGCAP");
+ 			memset(&b, 0, sizeof(b));
+ 			strcpy(b.name, "Logitech QuickCam USB");	/* Max 31 characters */
+-			b.type      = qc->vdev.type;
++			b.type      = VID_TYPE_CAPTURE;
+ 			b.channels  = 1;
+ 			b.audios    = 0;
+ 			b.maxwidth  = qc->sensor_data.maxwidth;
+@@ -3470,7 +3500,7 @@
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0)
+ static void qc_v4l_release(struct video_device *vfd) { }
+-static struct file_operations qc_v4l_fops = {
++static struct v4l2_file_operations qc_v4l_fops = {
+ 	owner:		THIS_MODULE,
+ 	open:		qc_v4l_open,
+ 	release:	qc_v4l_close,
+@@ -3484,7 +3514,7 @@
+ 
+ static struct video_device qc_v4l_template = {
+ 	name:		"QuickCam USB",
+-	type:		VID_TYPE_CAPTURE, // | VID_TYPE_SUBCAPTURE,
++	vfl_type:	VFL_TYPE_GRABBER,
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
+ 	hardware:	VID_HARDWARE_QCAM_USB,
+ #endif
+@@ -3662,7 +3692,7 @@
+ #endif
+ 	/* Register input device for button */
+ 	qc->input_ptr->name = "Quickcam snapshot button";
+-	qc->input_ptr->private = qc;
++	/*qc->input_ptr->private = qc;*/
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
+ 	qc->input_ptr->evbit[0] = BIT_MASK(EV_KEY);
+ 	qc->input_ptr->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
+@@ -3676,8 +3706,12 @@
+ 	qc->input_ptr->id.vendor = qc->dev->descriptor.idVendor;
+ 	qc->input_ptr->id.product = qc->dev->descriptor.idProduct;
+ 	qc->input_ptr->id.version = qc->dev->descriptor.bcdDevice;
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++	r = input_register_device(qc->input_ptr);
++	CHECK_ERROR(r != 0, fail2b, "qc_int_init input_register_device failed %d", r);
++#else
+ 	input_register_device(qc->input_ptr);
+-
++#endif
+ 	*qc->input_event_path = '\0';
+ 	usb_make_path(qc->dev, qc->input_physname, 56);
+ 	strcat(qc->input_physname, "/input0");
+@@ -3736,7 +3770,11 @@
+ 
+ 		/* Register V4L video device */
+ 		memcpy(&qc->vdev, &qc_v4l_template, sizeof(qc_v4l_template));
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,28)
++		video_set_drvdata(&(qc->vdev), qc);
++#else
+ 		qc->vdev.priv = qc;
++#endif
+ 
+ 		mb();
+ 		r = video_register_device(&qc->vdev, VFL_TYPE_GRABBER, video_nr);
+diff -N -U 3 -r qc-usb-messenger-1.8-orig/qc-memory.c qc-usb-messenger-1.8/qc-memory.c
+--- qc-usb-messenger-1.8-orig/qc-memory.c	2006-11-05 08:36:51.000000000 +0200
++++ qc-usb-messenger-1.8/qc-memory.c	2010-01-09 11:52:22.000000000 +0200
+@@ -49,6 +49,9 @@
+ #include <asm/pgtable.h>	/* Required on Alpha */
+ #include <linux/vmalloc.h>	/* Required on Alpha */
+ #include <linux/pagemap.h>	/* pmd_offset requires this on SuSE supplied kernels */
++#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,29)
++#include <drivers/staging/comedi/wrapper.h>
++#endif
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,4,0)
+ #include <linux/wrapper.h>	/* For proper mem_map_(un)reserve define, the compatibility define below might not work */
+ #endif
+diff -N -U 3 -r qc-usb-messenger-1.8-orig/quickcam.h qc-usb-messenger-1.8/quickcam.h
+--- qc-usb-messenger-1.8-orig/quickcam.h	2008-05-27 09:53:17.000000000 +0300
++++ qc-usb-messenger-1.8/quickcam.h	2010-01-08 20:41:09.000000000 +0200
+@@ -242,7 +242,7 @@
+ #if LINUX_VERSION_CODE<KERNEL_VERSION(2,4,20) || LINUX_VERSION_CODE>=KERNEL_VERSION(2,6,0)
+ /* Things come and go... */
+ /* Used only for debugging, so this could be actually removed if needed */
+-#define sem_getcount(sem)	atomic_read(&(sem)->count)
++#define sem_getcount(sem)	*(&(sem)->count)
+ #endif
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)
