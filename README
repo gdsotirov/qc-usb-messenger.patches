@@ -1,7 +1,7 @@
 	 Patches for Quickcam Messenger & Communicate driver for Linux
 				     ~~~~~
 		written by Georgi D. Sotirov <gdsotirov@dir.bg>
-			    Last version: 2008-01-30
+			    Last version: 2010-01-10
 
 0. Contents
   - Premable
@@ -28,8 +28,9 @@ folder content consists of patches for the qc-usb-messenger distribution.
 3. Purpose
 
   These patches are only small fixes that enable the compile of the original
-driver on newer than 2.6.24 linux kernels. Not all kernels are supported
-though.
+driver on newer than 2.6.28 linux kernels. Not all kernels are supported
+though. Official support from the original driver writter seems to lack
+since May 2008.
 
 4. License
 
