@@ -1,6 +1,6 @@
 # Quickcam Messenger & Communicate driver for Linux Patches
 
-1. Preamble
+## Preamble
 
 The Quickcam Messenger & Communicate driver for Linux is the only driver
 that sufficiently supports the following Logitech devices:
@@ -11,24 +11,24 @@ that sufficiently supports the following Logitech devices:
 The original driver is written by Christian Magnusson <mag@mag.cx> and can
 be found at http://home.mag.cx/messenger/
 
-2. About
+## About
 
 This document describes the content of the folder in which it is found. The
 folder content consists of patches for the qc-usb-messenger distribution.
 
-3. Purpose
+## Purpose
 
 These patches are only small fixes that enable the compile of the original
 driver on newer than 2.6.28 linux kernels. Not all kernels are supported
 though. Official support from the original driver author seems to lack
 since May 2008.
 
-4. License
+## License
 
 The patches are with the same license as the original driver - GNU's
 General Public License.
 
-5. Usage
+## Usage
 
 Usage of these patches is at your own risk. There is no any guarantee that
 they will work for you, thought they work for me. The testing of the patches
